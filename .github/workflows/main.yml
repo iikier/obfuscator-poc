@@ -1,4 +1,4 @@
-name: Deploy Obfuscated Code
+name: Build and Push Docker Image
 
 # Controla quando a action será executada.
 # Neste caso, ao fazer push para a branch 'main'.
@@ -6,15 +6,13 @@ on:
   push:
     branches: [ "main" ]
 
-# Permissões necessárias para o deploy no GitHub Pages
+# Permissões são apenas para ler o conteúdo do repositório
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # Define um job de build e deploy
 jobs:
-  build-and-deploy:
+  build-and-push-image:
     runs-on: ubuntu-latest # O job será executado em uma máquina virtual Ubuntu
 
     steps:
@@ -22,34 +20,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Configura o ambiente Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      # 2. Faz login no Docker Hub usando os secrets
+      # O workflow irá falhar se os secrets DOCKERHUB_USERNAME e DOCKERHUB_TOKEN não estiverem configurados
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
         with:
-          node-version: '18'
-          cache: 'npm'
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 3. Instala as dependências do projeto de forma otimizada para CI
-      - name: Install dependencies
-        run: npm ci
-
-      # 4. Executa a ofuscação (passo chave!)
-      - name: Obfuscate JavaScript
-        run: npm run obfuscate
-
-      # 5. Prepara o artefato para o GitHub Pages
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      # 6. Carrega os arquivos de produção como um artefato
-      # O GitHub Pages irá servir os arquivos a partir daqui.
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      # 3. Extrai metadados (como tags) para a imagem Docker
+      # A imagem será nomeada no formato seu-usuario/obfuscator-poc
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          # Carrega todo o diretório raiz. O GitHub Pages precisa do index.html.
-          path: '.'
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/obfuscator-poc
 
-      # 7. Faz o deploy para o GitHub Pages
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4 
+      # 4. Constrói a imagem Docker e a envia para o Docker Hub
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }} 

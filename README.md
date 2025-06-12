@@ -1,64 +1,71 @@
-# Prova de Conceito: Ofuscação de Código Front-End com javascript-obfuscator
+# Prova de Conceito: Ofuscação e Deploy com Docker
 
-Este repositório contém uma prova de conceito (PoC) simples para demonstrar o uso de uma ferramenta de ofuscação de código JavaScript em um projeto front-end.
-
-A ferramenta escolhida foi o [javascript-obfuscator](https://github.com/javascript-obfuscator/javascript-obfuscator), uma solução gratuita e de código aberto que pode ser facilmente integrada a um fluxo de trabalho de desenvolvimento web.
-
-## Objetivos
-
--   Pesquisar e selecionar uma ferramenta de ofuscação gratuita.
--   Configurar um ambiente de projeto mínimo.
--   Ofuscar um arquivo JavaScript de exemplo.
--   Demonstrar que o código ofuscado funciona como o original em uma página web.
+Este repositório contém uma prova de conceito (PoC) para demonstrar um fluxo completo de CI/CD, incluindo:
+1.  Ofuscação de múltiplos arquivos JavaScript.
+2.  Containerização da aplicação com Docker (Nginx).
+3.  Publicação da imagem Docker no **Docker Hub** via GitHub Actions.
 
 ## Estrutura do Projeto
 
 ```
 /
-├── dist/
-│   └── app.obfuscated.js  // Arquivo JavaScript ofuscado
-├── src/
-│   └── app.js             // Código JavaScript original
-├── index.html             // Página HTML para testar os scripts
-├── package.json           // Dependências e scripts do projeto
-└── README.md              // Este arquivo
+├── .github/
+│   └── workflows/
+│       └── main.yml      // Workflow para build e push da imagem Docker
+├── dist/                 // Diretório de output da ofuscação (gerado no build)
+├── src/                  // Código JavaScript original
+├── .dockerignore         // Ignora arquivos no build do Docker
+├── config.json           // Configurações da ofuscação
+├── Dockerfile            // Define a imagem Docker da aplicação
+├── index.html            // Página principal da aplicação
+├── package.json          // Dependências e scripts do projeto
+└── README.md             // Este arquivo
 ```
 
-## Passo a Passo para Reproduzir
+## Fluxo de Trabalho de CI/CD
 
-### 1. Pré-requisitos
+1.  **Configuração:** Antes de mais nada, é preciso configurar os secrets `DOCKERHUB_USERNAME` e `DOCKERHUB_TOKEN` nas configurações do repositório no GitHub.
+2.  **Desenvolvimento:** O código é desenvolvido localmente na pasta `src/`.
+3.  **Commit/Push:** As alterações são enviadas para a branch `main` no GitHub.
+4.  **GitHub Actions:** Um workflow é acionado para:
+    *   Fazer login no Docker Hub usando os secrets.
+    *   Construir a imagem Docker usando o `Dockerfile`.
+    *   Enviar a imagem final para o Docker Hub com as tags `latest` e a do commit.
 
-Certifique-se de ter o [Node.js](https://nodejs.org/) e o [npm](https://www.npmjs.com/) instalados em sua máquina.
+## Como Executar Localmente
 
-### 2. Instalação
+### Pré-requisitos
+-   [Node.js](https://nodejs.org/) e npm
+-   [Docker](https://www.docker.com/products/docker-desktop/)
 
-Clone o repositório e instale as dependências de desenvolvimento (neste caso, o `javascript-obfuscator`):
+### 1. Construir e Rodar o Container
+O `Dockerfile` automatiza todo o processo de instalação e build.
 
 ```bash
-npm install
+# 1. Construa a imagem Docker
+docker build -t obfuscator-poc .
+
+# 2. Execute o container a partir da imagem
+docker run -d -p 8080:80 obfuscator-poc
 ```
+Após isso, a aplicação estará disponível em **`http://localhost:8080`**.
 
-### 3. Código Original
+## Deploy em Produção
 
-O código-fonte original está localizado em `src/app.js`. É um script simples com uma função e uma classe para fins de demonstração.
+Com a imagem publicada no Docker Hub, o deploy consiste em instruir um servidor a usar a nova imagem.
 
-### 4. Ofuscando o Código
-
-Para executar o processo de ofuscação, utilize o script definido no `package.json`:
+Um exemplo de fluxo de deploy manual em um servidor com Docker seria:
 
 ```bash
-npm run obfuscate
+# (Substitua 'seu-usuario-docker' pelo seu username no Docker Hub)
+
+# 1. Parar o container antigo
+docker stop obfuscator-poc-container || true && docker rm obfuscator-poc-container || true
+
+# 2. Baixar a imagem mais recente do Docker Hub
+docker pull seu-usuario-docker/obfuscator-poc:latest
+
+# 3. Iniciar o novo container
+docker run -d --name obfuscator-poc-container -p 80:80 seu-usuario-docker/obfuscator-poc:latest
 ```
-
-Este comando irá:
-1.  Ler o arquivo `src/app.js`.
-2.  Aplicar as regras de ofuscação padrão.
-3.  Salvar o resultado em `dist/app.obfuscated.js`.
-
-### 5. Verificando o Resultado
-
-Abra o arquivo `index.html` em seu navegador de preferência.
-
-A página está configurada para carregar o script ofuscado de `dist/app.obfuscated.js`. Você pode verificar o console do desenvolvedor do navegador para ver que o script executa normalmente, exibindo as mesmas mensagens que o script original.
-
-Para comparar, você pode editar o `index.html` e trocar o script para a versão não ofuscada (`src/app.js`) e verá que o resultado funcional é o mesmo. 
+Este processo pode ser automatizado no workflow do GitHub Actions adicionando um job de deploy que se conecta ao servidor via SSH e executa esses comandos. 
