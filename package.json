@@ -1,15 +1,21 @@
 {
   "name": "obfuscator-poc",
   "version": "1.0.0",
-  "description": "A proof of concept for javascript-obfuscator",
-  "main": "index.js",
+  "description": "Prova de conceito de ofuscação de código JavaScript",
+  "main": "src/app.js",
+  "type": "module",
   "scripts": {
-    "obfuscate": "javascript-obfuscator ./src/app.js --output ./dist/app.obfuscated.js"
+    "obfuscate": "javascript-obfuscator src --output dist --config config.json",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "javascript",
+    "obfuscation",
+    "poc"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "javascript-obfuscator": "^4.1.1"
+    "javascript-obfuscator": "^4.1.0"
   }
 }
