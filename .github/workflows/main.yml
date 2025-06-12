@@ -1,0 +1,55 @@
+name: Deploy Obfuscated Code
+
+# Controla quando a action será executada.
+# Neste caso, ao fazer push para a branch 'main'.
+on:
+  push:
+    branches: [ "main" ]
+
+# Permissões necessárias para o deploy no GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Define um job de build e deploy
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # O job será executado em uma máquina virtual Ubuntu
+
+    steps:
+      # 1. Baixa o código do repositório para a máquina virtual
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Configura o ambiente Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      # 3. Instala as dependências do projeto de forma otimizada para CI
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Executa a ofuscação (passo chave!)
+      - name: Obfuscate JavaScript
+        run: npm run obfuscate
+
+      # 5. Prepara o artefato para o GitHub Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      # 6. Carrega os arquivos de produção como um artefato
+      # O GitHub Pages irá servir os arquivos a partir daqui.
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          # Carrega todo o diretório raiz. O GitHub Pages precisa do index.html.
+          path: '.'
+
+      # 7. Faz o deploy para o GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2 
