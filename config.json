@@ -28,5 +28,9 @@
     "stringArrayWrappersType": "function",
     "stringArrayThreshold": 0.75,
     "transformObjectKeys": true,
-    "unicodeEscapeSequence": false
-} 
+    "unicodeEscapeSequence": false,
+    "sourceMap": true,
+    "sourceMapMode": "separate",
+    "sourceMapBaseUrl": "",
+    "sourceMapFileName": ""
+}
