@@ -21,6 +21,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Add execute permission to obfuscator
+        run: chmod +x ./node_modules/.bin/javascript-obfuscator
+
       - name: Install New Relic CLI
         run: npm install -g @newrelic/publish-sourcemap
 
