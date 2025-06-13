@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "obfuscate": "javascript-obfuscator src --output dist --config config.json",
+    "publish-sourcemaps": "publish-sourcemap dist/app.js.map https://iikier.github.io/obfuscator-poc/dist/app.js && publish-sourcemap dist/storage.js.map https://iikier.github.io/obfuscator-poc/dist/storage.js && publish-sourcemap dist/todoManager.js.map https://iikier.github.io/obfuscator-poc/dist/todoManager.js && publish-sourcemap dist/ui.js.map https://iikier.github.io/obfuscator-poc/dist/ui.js",
+    "build-and-publish": "npm run obfuscate && npm run publish-sourcemaps",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -16,6 +18,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@newrelic/publish-sourcemap": "^5.1.4",
     "javascript-obfuscator": "^4.1.0"
   }
 }

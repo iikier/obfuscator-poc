@@ -21,4 +21,13 @@ lerna-debug.log*
 
 # Arquivos do sistema
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Metadados do Git e do Docker
+.git
+.gitignore
+Dockerfile
+.dockerignore
+
+# Source Maps (não devem ser públicos)
+dist/**/*.js.map 
